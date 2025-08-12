@@ -1,0 +1,22 @@
+{
+  "name": "the_internet_playwright",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nyn-aws/The_Internet_Playwright.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nyn-aws/The_Internet_Playwright/issues"
+  },
+  "homepage": "https://github.com/nyn-aws/The_Internet_Playwright#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.54.2",
+    "@types/node": "^24.2.1"
+  }
+}
