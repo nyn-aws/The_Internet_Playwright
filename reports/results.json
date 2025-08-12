@@ -74,7 +74,7 @@
           "column": 6,
           "specs": [
             {
-              "title": "A/B Testing",
+              "title": "Dynamic Controls",
               "ok": true,
               "tags": [],
               "tests": [
@@ -86,21 +86,21 @@
                   "projectName": "",
                   "results": [
                     {
-                      "workerIndex": 3,
+                      "workerIndex": 16,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 16251,
+                      "duration": 12411,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-11T13:02:52.723Z",
+                      "startTime": "2025-08-12T17:41:41.949Z",
                       "annotations": [],
                       "attachments": [
                         {
                           "name": "screenshot",
                           "contentType": "image/png",
-                          "path": "/home/a/Automation/automation-portfolio/automation-portfolio/playwright-projects/The_Internet_Playwright/test-results/functional-ui-test_homepag-2925c--Homepage-tests-A-B-Testing/test-finished-1.png"
+                          "path": "/home/a/Automation/automation-portfolio/automation-portfolio/playwright-projects/The_Internet_Playwright/test-results/functional-ui-test_homepag-d1ac3-page-tests-Dynamic-Controls/test-finished-1.png"
                         }
                       ]
                     }
@@ -108,10 +108,10 @@
                   "status": "expected"
                 }
               ],
-              "id": "407f2a532f3e316c951e-bbad8047152c3f619629",
+              "id": "407f2a532f3e316c951e-81007c7b977b8970d060",
               "file": "functional/ui/test_homepage.spec.ts",
-              "line": 7,
-              "column": 8
+              "line": 278,
+              "column": 7
             }
           ]
         }
@@ -120,8 +120,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-08-11T13:02:51.211Z",
-    "duration": 18162.93000000005,
+    "startTime": "2025-08-12T17:41:41.002Z",
+    "duration": 13626.596000000834,
     "expected": 1,
     "skipped": 0,
     "unexpected": 0,
