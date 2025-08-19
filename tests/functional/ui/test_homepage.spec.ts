@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, Frame } from "@playwright/test";
 
 test.describe("The Internet Homepage tests", () => {
   test.beforeEach(async ({ page }) => {
@@ -32,27 +32,6 @@ test.describe("The Internet Homepage tests", () => {
     await expect(deleteBtn).toHaveText("Delete");
     await deleteBtn.click();
     await expect(deleteBtn).toBeHidden();
-  });
-
-  // How to handle login prompt in Playwright?
-  test.skip("Basic Auth", async ({ browser }) => {
-    const context = await browser.newContext({
-      httpCredentials: {
-        username: "admin",
-        password: "admin",
-      },
-    });
-    const page = await context.newPage();
-    await page.goto("https://the-internet.herokuapp.com/");
-    await page.waitForLoadState("networkidle");
-    await expect(page).toHaveTitle("The Internet");
-    const basicAuthLink = page.getByText("Basic Auth (user and pass:");
-    await expect(basicAuthLink).toBeVisible();
-    await basicAuthLink.click();
-    await page.waitForLoadState("networkidle");
-    await expect(page.getByText("Congratulations! You must")).toHaveText(
-      "Congratulations! You must have the proper credentials."
-    );
   });
 
   /*
@@ -442,98 +421,569 @@ test.describe("The Internet Homepage tests", () => {
   });
 
   test("Form Authentication", async ({ page }) => {
-    // TODO: Implement Form Authentication test
+    const form_authentication_link = page.getByRole("link", {
+      name: "Form Authentication",
+    });
+    await form_authentication_link.click();
+
+    const username_1 = page.getByRole("textbox", { name: "Username" });
+    const password_1 = page.getByRole("textbox", { name: "Password" });
+    const login_1 = page.locator("//i[contains(text(),'Login')]");
+
+    // Input incorrect credential to verify error message
+    await username_1.fill("Incorrect");
+    await password_1.fill("password");
+    await login_1.click();
+    const invalid_username_warning = page.locator(
+      "//*[contains(text(),'Your username is invalid!')]"
+    );
+    await expect(invalid_username_warning).toBeVisible();
+
+    // incorrect password warning validation
+    const incorrect_password_warning = page.locator(
+      "//*[contains(text(),'Your password is invalid!')]"
+    );
+
+    await username_1.fill("tomsmith");
+    await password_1.fill("password");
+    await login_1.click();
+    await expect(incorrect_password_warning).toBeVisible();
+
+    // Entering correct credentials
+
+    await username_1.fill("tomsmith");
+    await password_1.fill("SuperSecretPassword!");
+    await login_1.click();
+
+    // Secure area validations
+
+    const secure_area_1 = page.getByText("You logged into a secure area");
+    const logout_button_1 = page.getByRole("link", { name: "Logout" });
+
+    await expect(secure_area_1).toBeVisible();
+    await expect(logout_button_1).toBeVisible();
+    await expect(logout_button_1).toBeEnabled();
+
+    // Logout validation
+    await logout_button_1.click();
+    await expect(username_1).toBeVisible();
+    await expect(password_1).toBeVisible();
   });
 
   test("Frames", async ({ page }) => {
-    // TODO: Implement Frames test
+    // FOr frames to work first check what is the current structure in which frames are present
+    // example: If the frames are nested: than first you have to consider a parent frame verify it is not null or undefined and then
+    // access its child elements
+    // one you have access to child element frame its a simple game of locators and performing different operations
+
+    const frames_link = page.getByRole("link", { name: "Frames", exact: true });
+    await frames_link.click();
+    const nested_frames_link = page.getByRole("link", {
+      name: "Nested Frames",
+    });
+    const iframe_link = page.getByRole("link", { name: "iFrame" });
+    await expect(nested_frames_link).toBeVisible();
+    await expect(iframe_link).toBeVisible();
+
+    await nested_frames_link.click();
+    await page.waitForLoadState("networkidle");
+    await page.frames().forEach((fr) => {
+      console.log(fr.name());
+    });
+    const frame_top = page.frame({ name: "frame-top" });
+    const frame_bottom = page.frame({ name: "frame-bottom" });
+    if (!frame_top) {
+      throw new Error("frame-top not found");
+    }
+    if (!frame_bottom) {
+      throw new Error("frame-bottom not found");
+    }
+    const frame_left: Frame = frame_top.childFrames()[0];
+    const frame_middle = frame_top.childFrames()[1];
+    const frame_right = frame_top.childFrames()[2];
+
+    // Assertions
+    await expect(frame_left.locator("body")).toContainText("LEFT");
+    await expect(frame_middle.locator("body")).toContainText("MIDDLE");
+    await expect(frame_right.locator("body")).toContainText("RIGHT");
+    await expect(frame_bottom.locator("body")).toContainText("BOTTOM");
   });
 
   test("Geolocation", async ({ page }) => {
-    // TODO: Implement Geolocation test
+    // skipping this as it want to me to share my location.
+    // Approach should be somewhere along the line of handling prompts
   });
 
   test("Horizontal Slider", async ({ page }) => {
-    // TODO: Implement Horizontal Slider test
+    // There are two approaches i know of dealing with sliders
+    // First in  clicking on the element then usingkeyboard commend the sending press/other key commands
+    // second is playwright in built method that just takes locator and you can use press command directly.
+    // For most cases I prefer second approach
+
+    const horizontal_slider_link = page.getByRole("link", {
+      name: "Horizontal Slider",
+    });
+    await horizontal_slider_link.click();
+    const horizontal_slider_heading = page.getByRole("heading", {
+      name: "Horizontal Slider",
+    });
+    await expect(horizontal_slider_heading).toContainText("Horizontal Slider");
+    const range = page.locator("#range");
+
+    // approach one
+    const slider = page.getByRole("slider");
+    await slider.click();
+    const n = 1;
+    for (let a = 0; a < n; a++) {
+      await page.keyboard.press("ArrowRight");
+    }
+
+    // approach 2
+    await page.reload();
+    await page.waitForLoadState("networkidle");
+    await slider.press("ArrowRight");
   });
 
   test("Hovers", async ({ page }) => {
-    // TODO: Implement Hovers test
+    await page.getByRole("link", { name: "Hovers" }).click();
+    const img1 = page.getByRole("img", { name: "User Avatar" }).first();
+    const img2 = page.getByRole("img", { name: "User Avatar" }).nth(1);
+    const img3 = page.getByRole("img", { name: "User Avatar" }).nth(2);
+
+    // Image assertions
+    await expect(img1).toBeVisible();
+    await expect(img2).toBeVisible();
+    await expect(img3).toBeVisible();
+
+    // Hover and assert visibility of elements that appear after hovering opver the element
+    await img1.hover();
+    const user_1 = page.getByRole("heading", { name: "name: user1" });
+    const view_profile = page.getByRole("link", { name: "View profile" });
+    await expect(user_1).toBeVisible();
+    await expect(user_1).toContainText("user1");
+    await expect(view_profile).toBeVisible();
+
+    await img2.hover();
+    const user_2 = page.getByRole("heading", { name: "name: user2" });
+    await expect(user_2).toBeVisible();
+    await expect(user_2).toContainText("user2");
+    await expect(view_profile).toBeVisible();
+
+    await img3.hover();
+    const user_3 = page.getByRole("heading", { name: "name: user3" });
+    await expect(user_3).toBeVisible();
+    await expect(user_3).toContainText("user3");
+    await expect(view_profile).toBeVisible();
   });
 
   test("Infinite Scroll", async ({ page }) => {
-    // TODO: Implement Infinite Scroll test
+    //  This one is easy, you just need to scroll adn take count of the locator of the class which keeps getting auto
+    // generated and use expect
+
+    await page.getByRole("link", { name: "Infinite Scroll" }).click();
+    const iterations = 10;
+    for (let index = 0; index < iterations; index++) {
+      const current_content_count = await page
+        .locator(".jscroll-added")
+        .count();
+      await page.evaluate(() => {
+        window.scrollBy(0, window.innerHeight);
+      });
+      await page.waitForTimeout(1000);
+      const updated_content_count = await page
+        .locator(".jscroll-added")
+        .count();
+      expect(updated_content_count).toBeGreaterThan(current_content_count);
+    }
   });
 
   test("Inputs", async ({ page }) => {
-    // TODO: Implement Inputs test
+    await page.getByRole("link", { name: "Inputs" }).click();
+    const spin_button = page.getByRole("spinbutton");
+    await expect(spin_button).toBeEditable();
+    await spin_button.press("ArrowDown");
+    expect(spin_button).toHaveValue("-1");
   });
 
   test("JQuery UI Menus", async ({ page }) => {
-    // TODO: Implement JQuery UI Menus test
+    await page.getByRole("link", { name: "JQuery UI Menus" }).click();
+
+    await page.getByRole("link", { name: "Enabled" }).hover();
+    await page.getByRole("link", { name: "Downloads" }).hover();
+    const downloadPromise2 = page.waitForEvent("download");
+    await page.getByRole("link", { name: "PDF" }).click();
+    const download = await downloadPromise2;
+    await download.saveAs(
+      "tests/functional/test_data/" + download.suggestedFilename()
+    );
   });
 
   test("JavaScript Alerts", async ({ page }) => {
-    // TODO: Implement JavaScript Alerts test
+    // alert(), confirm(), prompt() dialogs
+    // By default, dialogs are auto-dismissed by Playwright, so you don't have to handle them. However, you can register a dialog handler before the action that triggers the dialog to either dialog.accept() or dialog.dismiss() it.
   });
 
-  test("JavaScript onload event error", async ({ page }) => {
-    // TODO: Implement JavaScript onload event error test
+  test.fail("JavaScript onload event error", async ({ page }) => {
+    // We create an empty array for error and before navigating to the page with errors
+    // we define page.on
+    // we push error into error array if there is any and use simple expect to validate the array length
+    const errors: string[] = [];
+    page.on("pageerror", (err) => {
+      console.log("❌ JS Error:", err.message);
+      errors.push(err.message);
+    });
+
+    await page
+      .getByRole("link", { name: "JavaScript onload event error" })
+      .click();
+    // Example assertion: fail test if any JS errors happened
+    await expect(errors, "No JS errors should occur on page load").toHaveLength(
+      0
+    );
   });
 
   test("Key Presses", async ({ page }) => {
-    // TODO: Implement Key Presses test
+    await page.getByRole("link", { name: "Key Presses" }).click();
+    await page.waitForLoadState("networkidle");
+    await page.locator("#target").press("Tab");
+    const validation_1 = page.getByText("You entered: TAB");
+    await expect(validation_1).toBeVisible();
   });
 
   test("Large & Deep DOM", async ({ page }) => {
-    // TODO: Implement Large & Deep DOM test
-  });
-
-  test("Multiple Windows", async ({ page }) => {
-    // TODO: Implement Multiple Windows test
-  });
-
-  test("Nested Frames", async ({ page }) => {
-    // TODO: Implement Nested Frames test
+    const start = Date.now();
+    await page.getByRole("link", { name: "Large & Deep DOM" }).click();
+    const loadTime = Date.now() - start;
+    console.log(`Page load time: ${loadTime} ms`);
   });
 
   test("Notification Messages", async ({ page }) => {
-    // TODO: Implement Notification Messages test
+    await page.getByRole("link", { name: "Notification Messages" }).click();
+    const notification_1 = page.getByText("Action successful ×");
+    const notification_2 = page.getByText("Action unsuccesful, please");
+    await page.getByRole("link", { name: "Click here" }).click();
+    await Promise.any([
+      expect(notification_1).toBeVisible(),
+      expect(notification_2).toBeVisible(),
+    ]);
+
+    // here i used promise.any because, after clicking on that buttonn randomly we can get the notification
+    // so this promise checks if one is passing and passes the steps
   });
 
   test("Redirect Link", async ({ page }) => {
-    // TODO: Implement Redirect Link test
-  });
+    await page.getByRole("link", { name: "Redirect Link" }).click();
+    const redirect_link_1 = page.getByRole("link", { name: "here" });
+    await redirect_link_1.click();
+    await expect(page).toHaveTitle("The Internet");
+    const status_200_link = page.getByRole("link", { name: "200" });
+    const status_301_link = page.getByRole("link", { name: "301" });
+    const status_404_link = page.getByRole("link", { name: "404" });
+    const status_500_link = page.getByRole("link", { name: "500" });
 
-  test("Secure File Download", async ({ page }) => {
-    // TODO: Implement Secure File Download test
+    await status_200_link.click();
+    await expect(page).toHaveURL(
+      "https://the-internet.herokuapp.com/status_codes/200"
+    );
+
+    await page.goBack();
+    await expect(status_301_link).toHaveAttribute("href", "status_codes/301");
+
+    await status_404_link.click();
+    await expect(page).toHaveURL(
+      "https://the-internet.herokuapp.com/status_codes/404"
+    );
+
+    await page.goBack();
+    await expect(status_500_link).toHaveAttribute("href", "status_codes/500");
+
+    await redirect_link_1.click();
+    await page.goBack();
   });
 
   test("Shadow DOM", async ({ page }) => {
-    // TODO: Implement Shadow DOM test
+    // Dealing with shadow dom is easy is typescript
+    // we just have to use normal playwright locators
+    await page.getByRole("link", { name: "Shadow DOM" }).click();
+    const text_field_1 = page
+      .locator("my-paragraph")
+      .filter({ hasText: "Let's have some different text! My default text" })
+      .getByRole("paragraph");
+    const text_field_2 = page
+      .getByRole("listitem")
+      .filter({ hasText: "Let's have some different" });
+    const text_field_3 = page.getByText("In a list!");
+
+    await expect(text_field_1).toBeVisible();
+    await expect(text_field_2).toContainText("Let's have some different text!");
+    await expect(text_field_3).toBeVisible();
   });
 
-  test("Shifting Content", async ({ page }) => {
-    // TODO: Implement Shifting Content test
-  });
+  test("Shifting Resources", async ({ page }) => {
+    // Navigate to Shifting Resources page
+    await page.getByRole("link", { name: "Shifting Content" }).click();
+    await page.getByRole("link", { name: "Example 2: An image" }).click();
+    const resource = page.locator("#content").getByRole("img"); // The shifting image
 
-  test("Slow Resources", async ({ page }) => {
-    // TODO: Implement Slow Resources test
+    // Store initial bounding box
+    const initialBox = await resource.boundingBox();
+    if (!initialBox) throw new Error("Resource not found");
+
+    let shiftDetected = false;
+
+    // Reload the page multiple times to detect a shift
+    for (let i = 0; i < 5; i++) {
+      await page.reload();
+      const newBox = await resource.boundingBox();
+
+      if (!newBox) throw new Error("Resource disappeared after reload");
+
+      if (
+        newBox.x !== initialBox.x ||
+        newBox.y !== initialBox.y ||
+        newBox.width !== initialBox.width ||
+        newBox.height !== initialBox.height
+      ) {
+        shiftDetected = true;
+        break;
+      }
+    }
+
+    // Verify that at least one shift occurred
+    expect(shiftDetected).toBeTruthy();
   });
 
   test("Sortable Data Tables", async ({ page }) => {
-    // TODO: Implement Sortable Data Tables test
-  });
+    await page.getByRole("link", { name: "Sortable Data Tables" }).click();
 
-  test("Status Codes", async ({ page }) => {
-    // TODO: Implement Status Codes test
-  });
+    // Table 1
+    const T1 = page.locator("#table1");
+    const T1_First_name = page.locator("#table1").getByText("First Name");
+    const T1_last_name = page.locator("#table1").getByText("Last Name");
+    const T1_email = page.locator("#table1").getByText("Email");
+    const T1_due = page.locator("#table1").getByText("Due");
+    const T1_website = page.locator("#table1").getByText("Web Site");
 
-  test("Typos", async ({ page }) => {
-    // TODO: Implement Typos test
-  });
+    // Table 2
 
-  test("WYSIWYG Editor", async ({ page }) => {
-    // TODO: Implement WYSIWYG Editor test
+    const T2 = page.locator("#table2");
+    const T2_First_name = page.locator("#table2").getByText("First Name");
+    const T2_last_name = page.locator("#table2").getByText("Last Name");
+    const T2_email = page.locator("#table2").getByText("Email");
+    const T2_due = page.locator("#table2").getByText("Due");
+    const T2_website = page.locator("#table2").getByText("Web Site");
+
+    const sort_headers = [
+      T1,
+      T2,
+      T1_First_name,
+      T1_last_name,
+      T1_due,
+      T1_email,
+      T1_website,
+      T2_First_name,
+      T2_due,
+      T2_email,
+      T2_last_name,
+      T2_website,
+    ];
+
+    // Validating the visibility of the elements
+    for (const a of sort_headers) {
+      await expect(a).toBeVisible();
+      await expect(a).toBeEnabled();
+    }
+
+    let count1 = 0;
+    // sorting via last name and validating the last names sorted
+    const last_names_array_before = [];
+    for (let index = 0; index < 4; index++) {
+      const element = await page
+        .locator("#table1 tbody tr td")
+        .nth(count1)
+        .textContent();
+      last_names_array_before.push(element);
+      count1 = count1 + 6;
+    }
+    console.log(last_names_array_before);
+
+    await T1_last_name.click();
+    let count2 = 0;
+    const last_names_array_after = [];
+    for (let index = 0; index < 4; index++) {
+      const element = await page
+        .locator("#table1 tbody tr td")
+        .nth(count2)
+        .textContent();
+      last_names_array_after.push(element);
+      count2 += 6;
+    }
+    console.log(last_names_array_after);
+    await expect(last_names_array_before.sort()).toEqual(
+      last_names_array_after
+    );
+
+    // another approach:
+    // validating firstname sort:
+    const firstname_array_before = await page
+      .locator("#table1 tbody tr td:nth-child(2)")
+      .allTextContents();
+    console.log(firstname_array_before);
+
+    await T1_First_name.click();
+
+    const firstname_array_after = await page
+      .locator("#table1 tbody tr td:nth-child(2)")
+      .allTextContents();
+    console.log(firstname_array_after);
+
+    await expect(firstname_array_before.sort()).toEqual(firstname_array_after);
+
+    // Validating Email sort
+    const emailBefore = await page
+      .locator("#table1 tbody tr td:nth-child(3)")
+      .allTextContents();
+    console.log("Emails (before):", emailBefore);
+
+    await T1_email.click();
+
+    const emailAfter = await page
+      .locator("#table1 tbody tr td:nth-child(3)")
+      .allTextContents();
+    console.log("Emails (after):", emailAfter);
+
+    expect(emailAfter).toEqual(
+      [...emailBefore].sort((a, b) => a.localeCompare(b))
+    );
+
+    // Validating Due Amount sort (numeric)
+    const dueBefore = await page
+      .locator("#table1 tbody tr td:nth-child(4)")
+      .allTextContents();
+    console.log("Due (before):", dueBefore);
+
+    await T1_due.click();
+
+    const dueAfter = await page
+      .locator("#table1 tbody tr td:nth-child(4)")
+      .allTextContents();
+    console.log("Due (after):", dueAfter);
+
+    // Convert "$51.00" → 51.00 for correct numeric comparison
+    const parseDue = (arr: string[]) =>
+      arr.map((val) => parseFloat(val.replace("$", "")));
+
+    expect(parseDue(dueAfter)).toEqual(
+      [...parseDue(dueBefore)].sort((a, b) => a - b)
+    );
+
+    // Validating Website Name sort
+    const websiteBefore = await page
+      .locator("#table1 tbody tr td:nth-child(5)")
+      .allTextContents();
+    console.log("Websites (before):", websiteBefore);
+
+    await T1_website.click();
+
+    const websiteAfter = await page
+      .locator("#table1 tbody tr td:nth-child(5)")
+      .allTextContents();
+    console.log("Websites (after):", websiteAfter);
+
+    expect(websiteAfter).toEqual(
+      [...websiteBefore].sort((a, b) => a.localeCompare(b))
+    );
+
+    // something new i learned while automating sort
+    // 📌 Note on .localeCompare:
+    // JavaScript's default .sort() compares strings by Unicode code points,
+    // which means capital letters and lowercase letters may not sort
+    // in natural alphabetical order (e.g., "Zebra" < "apple").
+    //
+    // Example:
+    // ["Zebra", "apple", "Banana"].sort()
+    // → ["Banana", "Zebra", "apple"]  ❌ (not natural alphabetical order)
+    //
+    // .localeCompare() fixes this by comparing strings using language rules,
+    // so the sort is human-friendly and case-insensitive by default.
+    //
+    // Example:
+    // ["Zebra", "apple", "Banana"].sort((a, b) => a.localeCompare(b))
+    // → ["apple", "Banana", "Zebra"] ✅
+    //
+    // 👉 That’s why we use .localeCompare() for First Name, Email, Website, etc.
+    // to make sure the table sort is validated in natural alphabetical order.
   });
+});
+
+// How to handle login prompt in Playwright?
+test.skip("Basic Auth", async ({ browser }) => {
+  const context = await browser.newContext({
+    httpCredentials: {
+      username: "admin",
+      password: "admin",
+    },
+  });
+  const page = await context.newPage();
+  await page.goto("https://the-internet.herokuapp.com/");
+  await page.waitForLoadState("networkidle");
+  await expect(page).toHaveTitle("The Internet");
+  const basicAuthLink = page.getByText("Basic Auth (user and pass:");
+  await expect(basicAuthLink).toBeVisible();
+  await basicAuthLink.click();
+  await page.waitForLoadState("networkidle");
+  await expect(page.getByText("Congratulations! You must")).toHaveText(
+    "Congratulations! You must have the proper credentials."
+  );
+});
+
+test("Multiple Windows", async ({ context }) => {
+  const page1 = await context.newPage();
+  await page1.goto("https://the-internet.herokuapp.com/");
+  await page1.getByRole("link", { name: "Multiple Windows" }).click();
+  const pagePromise = context.waitForEvent("page");
+  await page1.getByRole("link", { name: "Click Here" }).click();
+  const page2 = await pagePromise;
+  const newWindowValidation = page2.getByRole("heading", {
+    name: "New Window",
+  });
+  await expect(newWindowValidation).toBeVisible();
+});
+
+test.fail("Secure File Download", async ({ browser }) => {
+  test.setTimeout(180000);
+
+  const context = await browser.newContext({
+    httpCredentials: {
+      username: "admin",
+      password: "admin",
+    },
+  });
+  const page = await context.newPage();
+  await page.goto("https://the-internet.herokuapp.com/");
+  await page.waitForLoadState("networkidle");
+  await expect(page).toHaveTitle("The Internet");
+  await page.getByRole("link", { name: "Secure File Download" }).click();
+  await page.waitForLoadState("networkidle");
+  const download_links = page.locator(".example a");
+  const download_links_count = await download_links.count();
+  console.log(`Download Links Count :${download_links_count}`);
+
+  const download_links_array = await download_links.elementHandles();
+  console.log(`Array Length: ${download_links_array.length}`);
+
+  for (const a of download_links_array) {
+    try {
+      const downloadPromise = page.waitForEvent("download", {
+        timeout: 25000,
+      });
+      await a.click();
+      const download = await downloadPromise;
+      await download.saveAs(
+        "tests/functional/test_downloads/" + download.suggestedFilename()
+      );
+    } catch (err) {
+      console.warn(`no download triggered or bad request.`);
+    }
+  }
 });

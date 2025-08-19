@@ -74,7 +74,7 @@
           "column": 6,
           "specs": [
             {
-              "title": "Dynamic Controls",
+              "title": "Sortable Data Tables",
               "ok": true,
               "tags": [],
               "tests": [
@@ -86,21 +86,52 @@
                   "projectName": "",
                   "results": [
                     {
-                      "workerIndex": 16,
+                      "workerIndex": 7,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 12411,
+                      "duration": 5031,
                       "errors": [],
-                      "stdout": [],
+                      "stdout": [
+                        {
+                          "text": "[ \u001b[32m'Smith'\u001b[39m, \u001b[32m'Bach'\u001b[39m, \u001b[32m'Doe'\u001b[39m, \u001b[32m'Conway'\u001b[39m ]\n"
+                        },
+                        {
+                          "text": "[ \u001b[32m'Bach'\u001b[39m, \u001b[32m'Conway'\u001b[39m, \u001b[32m'Doe'\u001b[39m, \u001b[32m'Smith'\u001b[39m ]\n"
+                        },
+                        {
+                          "text": "[ \u001b[32m'Frank'\u001b[39m, \u001b[32m'Tim'\u001b[39m, \u001b[32m'Jason'\u001b[39m, \u001b[32m'John'\u001b[39m ]\n"
+                        },
+                        {
+                          "text": "[ \u001b[32m'Frank'\u001b[39m, \u001b[32m'Jason'\u001b[39m, \u001b[32m'John'\u001b[39m, \u001b[32m'Tim'\u001b[39m ]\n"
+                        },
+                        {
+                          "text": "Emails (before): [\n  \u001b[32m'fbach@yahoo.com'\u001b[39m,\n  \u001b[32m'jdoe@hotmail.com'\u001b[39m,\n  \u001b[32m'jsmith@gmail.com'\u001b[39m,\n  \u001b[32m'tconway@earthlink.net'\u001b[39m\n]\n"
+                        },
+                        {
+                          "text": "Emails (after): [\n  \u001b[32m'fbach@yahoo.com'\u001b[39m,\n  \u001b[32m'jdoe@hotmail.com'\u001b[39m,\n  \u001b[32m'jsmith@gmail.com'\u001b[39m,\n  \u001b[32m'tconway@earthlink.net'\u001b[39m\n]\n"
+                        },
+                        {
+                          "text": "Due (before): [ \u001b[32m'$51.00'\u001b[39m, \u001b[32m'$100.00'\u001b[39m, \u001b[32m'$50.00'\u001b[39m, \u001b[32m'$50.00'\u001b[39m ]\n"
+                        },
+                        {
+                          "text": "Due (after): [ \u001b[32m'$50.00'\u001b[39m, \u001b[32m'$50.00'\u001b[39m, \u001b[32m'$51.00'\u001b[39m, \u001b[32m'$100.00'\u001b[39m ]\n"
+                        },
+                        {
+                          "text": "Websites (before): [\n  \u001b[32m'http://www.jsmith.com'\u001b[39m,\n  \u001b[32m'http://www.timconway.com'\u001b[39m,\n  \u001b[32m'http://www.frank.com'\u001b[39m,\n  \u001b[32m'http://www.jdoe.com'\u001b[39m\n]\n"
+                        },
+                        {
+                          "text": "Websites (after): [\n  \u001b[32m'http://www.frank.com'\u001b[39m,\n  \u001b[32m'http://www.jdoe.com'\u001b[39m,\n  \u001b[32m'http://www.jsmith.com'\u001b[39m,\n  \u001b[32m'http://www.timconway.com'\u001b[39m\n]\n"
+                        }
+                      ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-12T17:41:41.949Z",
+                      "startTime": "2025-08-19T10:47:36.758Z",
                       "annotations": [],
                       "attachments": [
                         {
                           "name": "screenshot",
                           "contentType": "image/png",
-                          "path": "/home/a/Automation/automation-portfolio/automation-portfolio/playwright-projects/The_Internet_Playwright/test-results/functional-ui-test_homepag-d1ac3-page-tests-Dynamic-Controls/test-finished-1.png"
+                          "path": "/home/a/Automation/automation-portfolio/automation-portfolio/playwright-projects/The_Internet_Playwright/test-results/functional-ui-test_homepag-38902--tests-Sortable-Data-Tables/test-finished-1.png"
                         }
                       ]
                     }
@@ -108,9 +139,9 @@
                   "status": "expected"
                 }
               ],
-              "id": "407f2a532f3e316c951e-81007c7b977b8970d060",
+              "id": "407f2a532f3e316c951e-fa8f5a05614c274c48a2",
               "file": "functional/ui/test_homepage.spec.ts",
-              "line": 278,
+              "line": 756,
               "column": 7
             }
           ]
@@ -120,8 +151,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-08-12T17:41:41.002Z",
-    "duration": 13626.596000000834,
+    "startTime": "2025-08-19T10:47:35.814Z",
+    "duration": 6248.921000000089,
     "expected": 1,
     "skipped": 0,
     "unexpected": 0,
