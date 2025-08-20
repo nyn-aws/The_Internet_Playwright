@@ -1,13 +1,14 @@
 import { test, expect, Frame } from "@playwright/test";
-
+import Homepage from "@pages/homepage";
+let homepage: Homepage;
 test.describe("The Internet Homepage tests", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("https://the-internet.herokuapp.com/");
-    await page.waitForLoadState("networkidle");
+    homepage = new Homepage(page);
+    await homepage.goto();
     await expect(page).toHaveTitle("The Internet");
   });
-  test.skip("A/B Testing", async ({ page }) => {
-    await page.getByRole("link", { name: "A/B Testing" }).click();
+  test("A/B Testing", async ({ page }) => {
+    await homepage.locators.abTestingLink.click();
 
     await expect(page).toHaveScreenshot("A_B_Testing_screenshot.png", {
       maxDiffPixelRatio: 0.2,
@@ -19,19 +20,14 @@ test.describe("The Internet Homepage tests", () => {
     // 4. Focus on core functionality over cosmetic or randomized UI differences.
   });
   test("Add and Remove elements functionality", async ({ page }) => {
-    const addRemoveLink = page.getByRole("link", {
-      name: "Add/Remove Elements",
-    });
-    const addElementBtn = page.getByRole("button", { name: "Add Element" });
-    const deleteBtn = page.getByRole("button", { name: "Delete" });
-    await expect(addRemoveLink).toBeVisible();
-    await addRemoveLink.click();
-    await expect(addElementBtn).toBeVisible();
-    await addElementBtn.click();
-    await expect(deleteBtn).toBeVisible();
-    await expect(deleteBtn).toHaveText("Delete");
-    await deleteBtn.click();
-    await expect(deleteBtn).toBeHidden();
+    await expect(homepage.locators.addRemoveLink).toBeVisible();
+    await homepage.locators.addRemoveLink.click();
+    await expect(homepage.locators.addElementBtn).toBeVisible();
+    await homepage.locators.addElementBtn.click();
+    await expect(homepage.locators.deleteBtn).toBeVisible();
+    await expect(homepage.locators.deleteBtn).toHaveText("Delete");
+    await homepage.locators.deleteBtn.click();
+    await expect(homepage.locators.deleteBtn).toBeHidden();
   });
 
   /*
@@ -49,17 +45,11 @@ test.describe("The Internet Homepage tests", () => {
   */
   // Also i marked this test case as fail, as i knew it would fail so i passes
   test.fail("Broken Images", async ({ page }) => {
-    const Broken_Images_Link = page.getByRole("link", {
-      name: "Broken Images",
-    });
-    await expect(Broken_Images_Link).toBeVisible();
-    await Broken_Images_Link.click();
+    await expect(homepage.locators.brokenImagesLink).toBeVisible();
+    await homepage.locators.brokenImagesLink.click();
 
-    const broken_images_heading = page.getByRole("heading", {
-      name: "Broken Images",
-    });
-    await expect(broken_images_heading).toBeVisible();
-    const images = await page.locator("img").elementHandles();
+    await expect(homepage.locators.brokenImagesHeading).toBeVisible();
+    const images = await homepage.locators.images.elementHandles();
     for (const img of images) {
       const width = await img.evaluate(
         (el: HTMLImageElement) => el.naturalWidth
@@ -69,11 +59,8 @@ test.describe("The Internet Homepage tests", () => {
   });
   // Open snippets of  vs code and added a resuable snippet of test which i use frequently
   test("Challenging DOM", async ({ page }) => {
-    const Challenging_DOM_link = page.getByRole("link", {
-      name: "Challenging DOM",
-    });
-    await expect(Challenging_DOM_link).toBeVisible();
-    await Challenging_DOM_link.click();
+    await expect(homepage.locators.challengingDOMLink).toBeVisible();
+    await homepage.locators.challengingDOMLink.click();
 
     /*
     Tasks for "Challenging DOM" page automation:
@@ -92,25 +79,21 @@ test.describe("The Internet Homepage tests", () => {
     */
 
     // as the button text keeps changing so we are focusing on color and order of button
-    const blue = page.locator(".button").nth(0);
-    const red = page.locator(".button").nth(1);
-    const green = page.locator(".button").nth(2);
-
     //  2. Click each button one by one.
-    await expect(blue).toBeVisible();
-    await expect(red).toBeVisible();
-    await expect(green).toBeVisible();
-    await blue.click();
-    await red.click();
-    await green.click();
+    await expect(homepage.locators.blueBtn.nth(0)).toBeVisible();
+    await expect(homepage.locators.redBtn).toBeVisible();
+    await expect(homepage.locators.greenBtn).toBeVisible();
+    await homepage.locators.blueBtn.nth(0).click();
+    await homepage.locators.redBtn.click();
+    await homepage.locators.greenBtn.click();
 
     // 3. Verify clicking a button does not break the page (table still visible).
 
-    const table_1 = page.locator("table");
-    await expect(table_1).toBeVisible();
+    await expect(homepage.locators.table_challenging).toBeVisible();
 
     // 4. Dynamically get all table header names (no hardcoded column names).
-    const table_1_headers = await page.locator("th").elementHandles();
+    const table_1_headers =
+      await homepage.locators.table1Headers.elementHandles();
     let table_1_headers_text = [];
     for (const th of table_1_headers) {
       table_1_headers_text.push(await th.innerText());
@@ -120,68 +103,59 @@ test.describe("The Internet Homepage tests", () => {
     //   6. Loop through the table to:
     // - Count total rows and columns.
     // - Extract all cell text into an array.
-    const table_1_rows = await page.locator("tbody tr").elementHandles();
-    const table_1_columns = await page.locator("thead th").elementHandles();
+    const table_1_rows = await homepage.locators.table1Rows.elementHandles();
+    const table_1_columns =
+      await homepage.locators.table1Headers.elementHandles();
     console.log(table_1_columns.length);
     console.log(table_1_rows.length);
 
     // ALternate we can also use the .count() method for same result
-    console.log(await page.locator("tbody tr").count());
-    console.log(await page.locator("thead th").count());
+    console.log(await homepage.locators.table1Rows.count());
+    console.log(await homepage.locators.table1Headers.count());
 
-    const all_cell_values = await table_1.allInnerTexts();
+    const all_cell_values = await homepage.locators.table1.allInnerTexts();
     console.log(all_cell_values);
 
     //  7. Locate the canvas element and verify it is present with non-zero height/width.
 
-    const canvas_1_element = page.locator("canvas");
-    const canvas_element_width = await canvas_1_element.evaluate(
+    const canvas_element_width = await homepage.locators.canvasElement.evaluate(
       (el: HTMLCanvasElement) => el.width
     );
     await expect(canvas_element_width, "Canvas Broken").toBeTruthy();
     // 8. (Optional) Take a screenshot of the canvas for visual comparison.
-    await canvas_1_element.screenshot({ path: "canvas_1_element.png" });
+    await homepage.locators.canvasElement.screenshot({
+      path: "canvas_1_element.png",
+    });
     await page.reload();
   });
 
   test("Check Boxes", async ({ page }) => {
-    const checkboxes_link = page.getByRole("link", { name: "Checkboxes" });
-    await expect(checkboxes_link).toBeVisible();
-    await checkboxes_link.click();
-    const checkbox_heading = page.getByRole("heading", { name: "Checkboxes" });
-    await expect(checkbox_heading).toHaveText("Checkboxes");
+    await expect(homepage.locators.checkboxesLink).toBeVisible();
+    await homepage.locators.checkboxesLink.click();
+    await expect(homepage.locators.checkboxHeading).toHaveText("Checkboxes");
 
-    const checkbox_1 = page.getByRole("checkbox").first();
-    const checkbox_2 = page.getByRole("checkbox").nth(1);
+    await homepage.locators.checkbox1.check();
+    await homepage.locators.checkbox2.uncheck();
 
-    await checkbox_1.check();
-    await checkbox_2.uncheck();
-
-    await expect(checkbox_1).toBeChecked();
+    await expect(homepage.locators.checkbox1).toBeChecked();
     // we can use .not to reverse any assertion condition of typescript playwright
-    await expect(checkbox_2).not.toBeChecked();
+    await expect(homepage.locators.checkbox2).not.toBeChecked();
   });
 
   test("Context Menu", async ({ page }) => {
-    const context_menu_link = page.getByRole("link", { name: "Context Menu" });
+    await homepage.locators.contextMenuLink.click();
     // Note: Browser's native right-click menu is not part of the DOM, so Playwright can't display or verify it.
     // Right-click in Playwright triggers the "contextmenu" event, which sites may override with custom menus.
     // For testing, right-click an element and assert the expected DOM changes (e.g., custom menu appears).
     // Native context menu testing is not possible; focus only on application-specific right-click behavior.
   });
   test("Disappearing Elements", async ({ page }) => {
-    const Disappearing_Elements_Link = page.getByRole("link", {
-      name: "Disappearing Elements",
-    });
-    await expect(Disappearing_Elements_Link).toBeVisible();
-    await Disappearing_Elements_Link.click();
-    const Disappearing_Elements_heading = page.getByRole("heading", {
-      name: "Disappearing Elements",
-    });
-    await expect(Disappearing_Elements_heading).toBeVisible();
-    const menu_items = page.locator("ul li a");
+    await expect(homepage.locators.disappearingElementsLink).toBeVisible();
+    await homepage.locators.disappearingElementsLink.click();
+    await expect(homepage.locators.disappearingElementsHeading).toBeVisible();
+    const menu_items = homepage.locators.menuItems;
     const menu_items_count_1 = await menu_items.count();
-    const home_1 = await page.locator("//a[text()='Home']");
+    const home_1 = await menu_items.filter({ hasText: "Home" });
     await expect(home_1).toBeVisible();
     await page.reload();
     const menu_items_count_2 = await menu_items.count();
@@ -192,123 +166,89 @@ test.describe("The Internet Homepage tests", () => {
   });
 
   test("Dynamic Loading", async ({ page }) => {
-    const Dynamic_Loading_link = page.getByRole("link", {
-      name: "Dynamic Loading",
-    });
-    await expect(Dynamic_Loading_link).toBeVisible();
-    await Dynamic_Loading_link.click();
-    const Dynamic_Loading_heading = page.getByRole("heading", {
-      name: "Dynamically Loaded Page",
-    });
-    await expect(Dynamic_Loading_heading).toContainText(
+    await expect(homepage.locators.dynamicLoadingLink).toBeVisible();
+    await homepage.locators.dynamicLoadingLink.click();
+    await expect(homepage.locators.dynamicLoadingHeading).toContainText(
       "Dynamically Loaded Page Elements"
     );
 
-    const example_1 = page.locator(".example a").first();
-    const example_2 = page.locator(".example a").nth(1);
-    await expect(example_1).toBeVisible();
-    await expect(example_2).toBeVisible();
+    await expect(homepage.locators.example1).toBeVisible();
+    await expect(homepage.locators.example2).toBeVisible();
 
-    await example_1.click();
-    const start_button = page.getByRole("button", { name: "Start" });
-    await expect(start_button).toBeVisible();
-    await expect(start_button).toBeEnabled();
+    await homepage.locators.example1.click();
+    await expect(homepage.locators.startButton).toBeVisible();
+    await expect(homepage.locators.startButton).toBeEnabled();
 
-    const hello_world_loaded = page.getByRole("heading", {
-      name: "Hello World!",
+    await expect(homepage.locators.helloWorldLoaded).toBeHidden();
+    await homepage.locators.startButton.click();
+
+    await expect(homepage.locators.loadingElement).toBeVisible();
+    await expect(homepage.locators.helloWorldLoaded).toBeVisible({
+      timeout: 30000,
     });
-    await expect(hello_world_loaded).toBeHidden();
-    await start_button.click();
-
-    const loading_element = page.getByText("Loading...");
-    await expect(loading_element).toBeVisible();
-    await expect(hello_world_loaded).toBeVisible({ timeout: 30000 });
 
     await page.goBack();
-    await example_2.click();
-    await start_button.click();
-    await expect(loading_element).toBeVisible();
-    await expect(hello_world_loaded).toBeVisible({ timeout: 30000 });
+    await homepage.locators.example2.click();
+    await homepage.locators.startButton.click();
+    await expect(homepage.locators.loadingElement).toBeVisible();
+    await expect(homepage.locators.helloWorldLoaded).toBeVisible({
+      timeout: 30000,
+    });
   });
 
   test("Drag and Drop", async ({ page }) => {
-    const Drag_and_Drop_link = page.getByRole("link", {
-      name: "Drag and Drop",
-    });
-    await Drag_and_Drop_link.click();
-    const a_block = page.locator("#column-a");
-    const b_block = page.locator("#column-b");
+    await homepage.locators.dragAndDropLink.click();
     const before = await page.screenshot({ path: "before.png" });
-    await a_block.dragTo(b_block);
+    await homepage.locators.columnA.dragTo(homepage.locators.columnB);
     const after = await page.screenshot({ path: "after.png" });
     await expect(page).toHaveScreenshot("after.png");
-    await b_block.dragTo(a_block);
+    await homepage.locators.columnB.dragTo(homepage.locators.columnA);
     await expect(page).toHaveScreenshot("before.png");
   });
 
   test("Dropdown", async ({ page }) => {
-    const Dropdown_link = page.getByRole("link", { name: "Dropdown" });
-    await Dropdown_link.click();
-    const dropdown_1 = page.locator("#dropdown");
-    await dropdown_1.selectOption("Option 2");
-    await dropdown_1.selectOption({ index: 1 });
+    await homepage.locators.dropdownLink.click();
+    await homepage.locators.dropdown1.selectOption("Option 2");
+    await homepage.locators.dropdown1.selectOption({ index: 1 });
   });
 
   test("Dynamic Controls", async ({ page }) => {
-    const Dynamic_Controls_link = page.getByRole("link", {
-      name: "Dynamic Controls",
-    });
-    await Dynamic_Controls_link.click();
+    await homepage.locators.dynamicControlsLink.click();
 
-    const Remove_button = page.getByRole("button", { name: "Remove" });
-    const enable_button = page.getByRole("button", { name: "Enable" });
-    const disable_button = page.getByRole("button", { name: "Disable" });
-    const add_button = page.getByRole("button", { name: "Add" });
-    const checkbox_4 = page.getByRole("checkbox");
-    const textbox_1 = page.getByRole("textbox");
-    const wait_message = page.getByText("Wait for it...");
+    await expect(homepage.locators.checkbox4).not.toBeChecked();
+    await expect(homepage.locators.removeButton).toBeEnabled();
+    await expect(homepage.locators.enableButton).toBeEnabled();
+    await expect(homepage.locators.addButton).toBeHidden();
+    await expect(homepage.locators.disableButton).toBeHidden();
+    await expect(homepage.locators.textbox1).toBeDisabled();
 
-    await expect(checkbox_4).not.toBeChecked();
-    await expect(Remove_button).toBeEnabled();
-    await expect(enable_button).toBeEnabled();
-    await expect(add_button).toBeHidden();
-    await expect(disable_button).toBeHidden();
-    await expect(textbox_1).toBeDisabled();
+    await homepage.locators.checkbox4.check();
+    await homepage.locators.removeButton.click();
+    // await expect(homepage.locators.waitMessage).toHaveText("Wait for it...");
+    await expect(homepage.locators.addButton).toBeVisible();
+    await expect(homepage.locators.addButton).toBeEnabled();
 
-    await checkbox_4.check();
-    await Remove_button.click();
-    await expect(wait_message).toHaveText("Wait for it...");
-    await expect(add_button).toBeVisible();
-    await expect(add_button).toBeEnabled();
+    await homepage.locators.enableButton.click();
+    await expect(homepage.locators.disableButton).toBeVisible();
+    await expect(homepage.locators.disableButton).toBeEnabled();
+    await expect(homepage.locators.textbox1).toBeEnabled();
+    await homepage.locators.textbox1.fill("Hello world");
+    await homepage.locators.textbox1.clear();
 
-    await enable_button.click();
-    await expect(disable_button).toBeVisible();
-    await expect(disable_button).toBeEnabled();
-    await expect(textbox_1).toBeEnabled();
-    await textbox_1.fill("Hello world");
-    await textbox_1.clear();
-
-    await expect(Remove_button).toBeHidden();
-    await expect(enable_button).toBeHidden();
+    await expect(homepage.locators.removeButton).toBeHidden();
+    await expect(homepage.locators.enableButton).toBeHidden();
   });
 
   test("Entry Ad", async ({ page }) => {
-    const entry_ad_link = page.getByRole("link", { name: "Entry Ad" });
-    await entry_ad_link.click();
-
-    const modal_window = page.getByRole("heading", {
-      name: "This is a modal window",
-    });
-    await expect(modal_window).toBeVisible();
-    const close_button = page.getByText("Close", { exact: true });
-    await close_button.click();
+    await homepage.locators.entryAdLink.click();
+    await expect(homepage.locators.entryAdModal).toBeVisible();
+    await homepage.locators.entryAdCloseBtn.click();
     await page.reload();
-    await expect(close_button).toBeHidden();
+    await expect(homepage.locators.entryAdCloseBtn).toBeHidden();
   });
 
   test("Exit Intent", async ({ page }) => {
-    const exit_intent_link = page.getByRole("link", { name: "Exit Intent" });
-    await exit_intent_link.click();
+    await homepage.locators.exitIntentLink.click();
     // What is exit intent?
     // Exit intent is basically your mouse is in the browser window range
     // and suppose you went to change tab in browser
@@ -330,39 +270,32 @@ test.describe("The Internet Homepage tests", () => {
       });
       document.documentElement.dispatchEvent(evt);
     });
-    const modal_window = page.getByRole("heading", {
-      name: "This is a modal window",
-    });
-    await expect(modal_window).toBeVisible();
-    const close_button = page.getByText("Close", { exact: true });
-    await close_button.click();
+    const exitIntentModalWindow = homepage.locators.exitIntentModal;
+    await expect(exitIntentModalWindow).toBeVisible();
+    const exitIntentCloseButton = homepage.locators.exitIntentCloseBtn;
+    await exitIntentCloseButton.click();
   });
 
-  test.fail("Download", async ({ page }) => {
+  test.skip("Download", async ({ page }) => {
     // test.slow();
     test.setTimeout(180000);
-    const file_download_link = page.getByRole("link", {
-      name: "File Download",
-      exact: true,
-    });
+    await homepage.locators.fileDownloadLink.click();
+    const fileDownloadLinks = homepage.locators.fileDownloadLinks;
+    const fileDownloadLinksCount = await fileDownloadLinks.count();
+    console.log(`Download Links Count :${fileDownloadLinksCount}`);
 
-    await file_download_link.click();
-    const download_links = page.locator(".example a");
-    const download_links_count = await download_links.count();
-    console.log(`Download Links Count :${download_links_count}`);
+    const fileDownloadLinksArray = await fileDownloadLinks.elementHandles();
+    console.log(`Array Length: ${fileDownloadLinksArray.length}`);
 
-    const download_links_array = await download_links.elementHandles();
-    console.log(`Array Length: ${download_links_array.length}`);
-
-    for (const a of download_links_array) {
+    for (const a of fileDownloadLinksArray) {
       try {
-        const downloadPromise = page.waitForEvent("download", {
+        const fileDownloadPromise = page.waitForEvent("download", {
           timeout: 25000,
         });
         await a.click();
-        const download = await downloadPromise;
-        await download.saveAs(
-          "tests/functional/test_downloads/" + download.suggestedFilename()
+        const fileDownload = await fileDownloadPromise;
+        await fileDownload.saveAs(
+          "tests/functional/test_downloads/" + fileDownload.suggestedFilename()
         );
       } catch (err) {
         console.warn(`no download triggered or bad request.`);
@@ -388,13 +321,10 @@ test.describe("The Internet Homepage tests", () => {
     // My mistake was, I did not consider the initial height of the element.
     // The element had some height and after scrolling it changed — I thought it would remain the same.
     // Anyway, it was a good learning experience for boundingBox.
-    const floating_menu_link = page.getByRole("link", {
-      name: "Floating Menu",
-    });
-    await floating_menu_link.click();
+    await homepage.locators.floatingMenuLink.click();
 
     async function checkFloatingMenuLinksAfterScroll() {
-      const menuLinks = await page.locator("#menu a").elementHandles();
+      const menuLinks = await homepage.locators.menuLinks.elementHandles();
       if (!menuLinks.length) throw new Error("No floating menu links found");
 
       // Before scroll: just check each link is visible (optional)
@@ -421,53 +351,34 @@ test.describe("The Internet Homepage tests", () => {
   });
 
   test("Form Authentication", async ({ page }) => {
-    const form_authentication_link = page.getByRole("link", {
-      name: "Form Authentication",
-    });
-    await form_authentication_link.click();
-
-    const username_1 = page.getByRole("textbox", { name: "Username" });
-    const password_1 = page.getByRole("textbox", { name: "Password" });
-    const login_1 = page.locator("//i[contains(text(),'Login')]");
+    await homepage.locators.formAuthLink.click();
 
     // Input incorrect credential to verify error message
-    await username_1.fill("Incorrect");
-    await password_1.fill("password");
-    await login_1.click();
-    const invalid_username_warning = page.locator(
-      "//*[contains(text(),'Your username is invalid!')]"
-    );
-    await expect(invalid_username_warning).toBeVisible();
+    await homepage.locators.usernameField.fill("Incorrect");
+    await homepage.locators.passwordField.fill("password");
+    await homepage.locators.loginBtn.click();
+    await expect(homepage.locators.invalidUsernameMsg).toBeVisible();
 
     // incorrect password warning validation
-    const incorrect_password_warning = page.locator(
-      "//*[contains(text(),'Your password is invalid!')]"
-    );
-
-    await username_1.fill("tomsmith");
-    await password_1.fill("password");
-    await login_1.click();
-    await expect(incorrect_password_warning).toBeVisible();
+    await homepage.locators.usernameField.fill("tomsmith");
+    await homepage.locators.passwordField.fill("password");
+    await homepage.locators.loginBtn.click();
+    await expect(homepage.locators.invalidPasswordMsg).toBeVisible();
 
     // Entering correct credentials
-
-    await username_1.fill("tomsmith");
-    await password_1.fill("SuperSecretPassword!");
-    await login_1.click();
+    await homepage.locators.usernameField.fill("tomsmith");
+    await homepage.locators.passwordField.fill("SuperSecretPassword!");
+    await homepage.locators.loginBtn.click();
 
     // Secure area validations
-
-    const secure_area_1 = page.getByText("You logged into a secure area");
-    const logout_button_1 = page.getByRole("link", { name: "Logout" });
-
-    await expect(secure_area_1).toBeVisible();
-    await expect(logout_button_1).toBeVisible();
-    await expect(logout_button_1).toBeEnabled();
+    await expect(homepage.locators.secureAreaHeading.first()).toBeVisible();
+    await expect(homepage.locators.logoutBtn).toBeVisible();
+    await expect(homepage.locators.logoutBtn).toBeEnabled();
 
     // Logout validation
-    await logout_button_1.click();
-    await expect(username_1).toBeVisible();
-    await expect(password_1).toBeVisible();
+    await homepage.locators.logoutBtn.click();
+    await expect(homepage.locators.usernameField).toBeVisible();
+    await expect(homepage.locators.passwordField).toBeVisible();
   });
 
   test("Frames", async ({ page }) => {
@@ -476,37 +387,25 @@ test.describe("The Internet Homepage tests", () => {
     // access its child elements
     // one you have access to child element frame its a simple game of locators and performing different operations
 
-    const frames_link = page.getByRole("link", { name: "Frames", exact: true });
-    await frames_link.click();
-    const nested_frames_link = page.getByRole("link", {
-      name: "Nested Frames",
-    });
-    const iframe_link = page.getByRole("link", { name: "iFrame" });
-    await expect(nested_frames_link).toBeVisible();
-    await expect(iframe_link).toBeVisible();
+    await homepage.locators.framesLink.first().click();
+    await expect(homepage.locators.nestedFramesLink).toBeVisible();
+    await expect(homepage.locators.iframeLink).toBeVisible();
 
-    await nested_frames_link.click();
+    await homepage.locators.nestedFramesLink.click();
     await page.waitForLoadState("networkidle");
-    await page.frames().forEach((fr) => {
-      console.log(fr.name());
-    });
-    const frame_top = page.frame({ name: "frame-top" });
-    const frame_bottom = page.frame({ name: "frame-bottom" });
-    if (!frame_top) {
-      throw new Error("frame-top not found");
-    }
-    if (!frame_bottom) {
-      throw new Error("frame-bottom not found");
-    }
-    const frame_left: Frame = frame_top.childFrames()[0];
-    const frame_middle = frame_top.childFrames()[1];
-    const frame_right = frame_top.childFrames()[2];
-
     // Assertions
-    await expect(frame_left.locator("body")).toContainText("LEFT");
-    await expect(frame_middle.locator("body")).toContainText("MIDDLE");
-    await expect(frame_right.locator("body")).toContainText("RIGHT");
-    await expect(frame_bottom.locator("body")).toContainText("BOTTOM");
+    await expect(
+      homepage.frameLocators.frameLeft.locator("body")
+    ).toContainText("LEFT");
+    await expect(
+      homepage.frameLocators.frameMiddle.locator("body")
+    ).toContainText("MIDDLE");
+    await expect(
+      homepage.frameLocators.frameRight.locator("body")
+    ).toContainText("RIGHT");
+    await expect(
+      homepage.frameLocators.frameBottom.locator("body")
+    ).toContainText("BOTTOM");
   });
 
   test("Geolocation", async ({ page }) => {
@@ -520,18 +419,14 @@ test.describe("The Internet Homepage tests", () => {
     // second is playwright in built method that just takes locator and you can use press command directly.
     // For most cases I prefer second approach
 
-    const horizontal_slider_link = page.getByRole("link", {
-      name: "Horizontal Slider",
-    });
-    await horizontal_slider_link.click();
-    const horizontal_slider_heading = page.getByRole("heading", {
-      name: "Horizontal Slider",
-    });
-    await expect(horizontal_slider_heading).toContainText("Horizontal Slider");
-    const range = page.locator("#range");
+    await homepage.locators.horizontalSliderLink.click();
+    await expect(homepage.locators.horizontalSliderHeading).toContainText(
+      "Horizontal Slider"
+    );
+    const range = homepage.locators.sliderRange;
 
     // approach one
-    const slider = page.getByRole("slider");
+    const slider = homepage.locators.sliderInput;
     await slider.click();
     const n = 1;
     for (let a = 0; a < n; a++) {
@@ -545,82 +440,80 @@ test.describe("The Internet Homepage tests", () => {
   });
 
   test("Hovers", async ({ page }) => {
-    await page.getByRole("link", { name: "Hovers" }).click();
-    const img1 = page.getByRole("img", { name: "User Avatar" }).first();
-    const img2 = page.getByRole("img", { name: "User Avatar" }).nth(1);
-    const img3 = page.getByRole("img", { name: "User Avatar" }).nth(2);
-
+    await homepage.locators.hoversLink.click();
     // Image assertions
-    await expect(img1).toBeVisible();
-    await expect(img2).toBeVisible();
-    await expect(img3).toBeVisible();
+    await expect(homepage.locators.image1).toBeVisible();
+    await expect(homepage.locators.image2).toBeVisible();
+    await expect(homepage.locators.image3).toBeVisible();
 
-    // Hover and assert visibility of elements that appear after hovering opver the element
-    await img1.hover();
-    const user_1 = page.getByRole("heading", { name: "name: user1" });
-    const view_profile = page.getByRole("link", { name: "View profile" });
-    await expect(user_1).toBeVisible();
-    await expect(user_1).toContainText("user1");
-    await expect(view_profile).toBeVisible();
+    // Hover and assert visibility of elements that appear after hovering over the element
+    await homepage.locators.image1.hover();
+    await expect(homepage.locators.user1).toBeVisible();
+    await expect(homepage.locators.user1).toContainText("user1");
+    await expect(homepage.locators.viewProfile).toBeVisible();
 
-    await img2.hover();
-    const user_2 = page.getByRole("heading", { name: "name: user2" });
-    await expect(user_2).toBeVisible();
-    await expect(user_2).toContainText("user2");
-    await expect(view_profile).toBeVisible();
+    await homepage.locators.image2.hover();
+    await expect(homepage.locators.user2).toBeVisible();
+    await expect(homepage.locators.user2).toContainText("user2");
+    await expect(homepage.locators.viewProfile).toBeVisible();
 
-    await img3.hover();
-    const user_3 = page.getByRole("heading", { name: "name: user3" });
-    await expect(user_3).toBeVisible();
-    await expect(user_3).toContainText("user3");
-    await expect(view_profile).toBeVisible();
+    await homepage.locators.image3.hover();
+    await expect(homepage.locators.user3).toBeVisible();
+    await expect(homepage.locators.user3).toContainText("user3");
+    await expect(homepage.locators.viewProfile).toBeVisible();
   });
 
   test("Infinite Scroll", async ({ page }) => {
-    //  This one is easy, you just need to scroll adn take count of the locator of the class which keeps getting auto
+    //  This one is easy, you just need to scroll and take count of the locator of the class which keeps getting auto
     // generated and use expect
 
-    await page.getByRole("link", { name: "Infinite Scroll" }).click();
+    await homepage.locators.infiniteScrollLink.click();
+    const infiniteScrollContent = homepage.locators.infiniteScrollContent;
     const iterations = 10;
     for (let index = 0; index < iterations; index++) {
-      const current_content_count = await page
-        .locator(".jscroll-added")
-        .count();
+      const current_content_count = await infiniteScrollContent.count();
       await page.evaluate(() => {
         window.scrollBy(0, window.innerHeight);
       });
       await page.waitForTimeout(1000);
-      const updated_content_count = await page
-        .locator(".jscroll-added")
-        .count();
+      const updated_content_count = await infiniteScrollContent.count();
       expect(updated_content_count).toBeGreaterThan(current_content_count);
     }
   });
 
   test("Inputs", async ({ page }) => {
-    await page.getByRole("link", { name: "Inputs" }).click();
-    const spin_button = page.getByRole("spinbutton");
+    await homepage.locators.inputsLink.click();
+    const spin_button = homepage.locators.spinButton;
     await expect(spin_button).toBeEditable();
     await spin_button.press("ArrowDown");
     expect(spin_button).toHaveValue("-1");
   });
 
   test("JQuery UI Menus", async ({ page }) => {
-    await page.getByRole("link", { name: "JQuery UI Menus" }).click();
+    await homepage.locators.jqueryMenusLink.click();
 
-    await page.getByRole("link", { name: "Enabled" }).hover();
-    await page.getByRole("link", { name: "Downloads" }).hover();
-    const downloadPromise2 = page.waitForEvent("download");
-    await page.getByRole("link", { name: "PDF" }).click();
-    const download = await downloadPromise2;
-    await download.saveAs(
-      "tests/functional/test_data/" + download.suggestedFilename()
+    await homepage.locators.enabledLink.hover();
+    await homepage.locators.downloadsLink.hover();
+    const menuDownloadPromise = page.waitForEvent("download");
+    await homepage.locators.pdfLink.click();
+    const menuDownload = await menuDownloadPromise;
+    await menuDownload.saveAs(
+      "tests/functional/test_data/" + menuDownload.suggestedFilename()
     );
   });
 
   test("JavaScript Alerts", async ({ page }) => {
+    await homepage.locators.jsAlertsLink.click();
+
     // alert(), confirm(), prompt() dialogs
     // By default, dialogs are auto-dismissed by Playwright, so you don't have to handle them. However, you can register a dialog handler before the action that triggers the dialog to either dialog.accept() or dialog.dismiss() it.
+
+    // For alert
+    page.on("dialog", (dialog) => dialog.accept());
+    await homepage.locators.jsAlertButton.click();
+    await expect(homepage.locators.jsResult).toHaveText(
+      "You successfully clicked an alert"
+    );
   });
 
   test.fail("JavaScript onload event error", async ({ page }) => {
@@ -633,9 +526,7 @@ test.describe("The Internet Homepage tests", () => {
       errors.push(err.message);
     });
 
-    await page
-      .getByRole("link", { name: "JavaScript onload event error" })
-      .click();
+    await homepage.locators.jsOnloadErrorLink.click();
     // Example assertion: fail test if any JS errors happened
     await expect(errors, "No JS errors should occur on page load").toHaveLength(
       0
@@ -643,28 +534,28 @@ test.describe("The Internet Homepage tests", () => {
   });
 
   test("Key Presses", async ({ page }) => {
-    await page.getByRole("link", { name: "Key Presses" }).click();
+    await homepage.locators.keyPressesLink.click();
     await page.waitForLoadState("networkidle");
-    await page.locator("#target").press("Tab");
-    const validation_1 = page.getByText("You entered: TAB");
-    await expect(validation_1).toBeVisible();
+    await homepage.locators.inputTarget.press("Tab");
+    await expect(homepage.locators.keyPressResult).toHaveText(
+      "You entered: TAB"
+    );
   });
 
   test("Large & Deep DOM", async ({ page }) => {
     const start = Date.now();
-    await page.getByRole("link", { name: "Large & Deep DOM" }).click();
+    await homepage.locators.largeDeepDOMLink.click();
     const loadTime = Date.now() - start;
     console.log(`Page load time: ${loadTime} ms`);
+    await expect(homepage.locators.largeTable).toBeVisible();
   });
 
   test("Notification Messages", async ({ page }) => {
-    await page.getByRole("link", { name: "Notification Messages" }).click();
-    const notification_1 = page.getByText("Action successful ×");
-    const notification_2 = page.getByText("Action unsuccesful, please");
-    await page.getByRole("link", { name: "Click here" }).click();
+    await homepage.locators.notificationMessagesLink.click();
+    await homepage.locators.clickHereLink.click();
     await Promise.any([
-      expect(notification_1).toBeVisible(),
-      expect(notification_2).toBeVisible(),
+      expect(homepage.locators.successNotification).toBeVisible(),
+      expect(homepage.locators.errorNotification).toBeVisible(),
     ]);
 
     // here i used promise.any because, after clicking on that buttonn randomly we can get the notification
@@ -672,61 +563,53 @@ test.describe("The Internet Homepage tests", () => {
   });
 
   test("Redirect Link", async ({ page }) => {
-    await page.getByRole("link", { name: "Redirect Link" }).click();
-    const redirect_link_1 = page.getByRole("link", { name: "here" });
-    await redirect_link_1.click();
+    await homepage.locators.redirectLink.click();
+    await homepage.locators.redirectHereLink.click();
     await expect(page).toHaveTitle("The Internet");
-    const status_200_link = page.getByRole("link", { name: "200" });
-    const status_301_link = page.getByRole("link", { name: "301" });
-    const status_404_link = page.getByRole("link", { name: "404" });
-    const status_500_link = page.getByRole("link", { name: "500" });
 
-    await status_200_link.click();
+    await homepage.locators.status200Link.click();
     await expect(page).toHaveURL(
       "https://the-internet.herokuapp.com/status_codes/200"
     );
 
     await page.goBack();
-    await expect(status_301_link).toHaveAttribute("href", "status_codes/301");
+    await expect(homepage.locators.status301Link).toHaveAttribute(
+      "href",
+      "status_codes/301"
+    );
 
-    await status_404_link.click();
+    await homepage.locators.status404Link.click();
     await expect(page).toHaveURL(
       "https://the-internet.herokuapp.com/status_codes/404"
     );
 
     await page.goBack();
-    await expect(status_500_link).toHaveAttribute("href", "status_codes/500");
+    await expect(homepage.locators.status500Link).toHaveAttribute(
+      "href",
+      "status_codes/500"
+    );
 
-    await redirect_link_1.click();
+    await homepage.locators.redirectHereLink.click();
     await page.goBack();
   });
 
   test("Shadow DOM", async ({ page }) => {
     // Dealing with shadow dom is easy is typescript
     // we just have to use normal playwright locators
-    await page.getByRole("link", { name: "Shadow DOM" }).click();
-    const text_field_1 = page
-      .locator("my-paragraph")
-      .filter({ hasText: "Let's have some different text! My default text" })
-      .getByRole("paragraph");
-    const text_field_2 = page
-      .getByRole("listitem")
-      .filter({ hasText: "Let's have some different" });
-    const text_field_3 = page.getByText("In a list!");
-
-    await expect(text_field_1).toBeVisible();
-    await expect(text_field_2).toContainText("Let's have some different text!");
-    await expect(text_field_3).toBeVisible();
+    await homepage.locators.shadowDOMLink.click();
+    await expect(homepage.locators.shadowText1).toBeVisible();
+    await expect(homepage.locators.shadowText2).toContainText(
+      "Let's have some different text!"
+    );
+    await expect(homepage.locators.shadowText3).toBeVisible();
   });
 
   test("Shifting Resources", async ({ page }) => {
-    // Navigate to Shifting Resources page
-    await page.getByRole("link", { name: "Shifting Content" }).click();
-    await page.getByRole("link", { name: "Example 2: An image" }).click();
-    const resource = page.locator("#content").getByRole("img"); // The shifting image
+    await homepage.locators.shiftingContentLink.click();
+    await homepage.locators.shiftingImageLink.click();
 
     // Store initial bounding box
-    const initialBox = await resource.boundingBox();
+    const initialBox = await homepage.locators.shiftingImage.boundingBox();
     if (!initialBox) throw new Error("Resource not found");
 
     let shiftDetected = false;
@@ -734,7 +617,7 @@ test.describe("The Internet Homepage tests", () => {
     // Reload the page multiple times to detect a shift
     for (let i = 0; i < 5; i++) {
       await page.reload();
-      const newBox = await resource.boundingBox();
+      const newBox = await homepage.locators.shiftingImage.boundingBox();
 
       if (!newBox) throw new Error("Resource disappeared after reload");
 
@@ -754,38 +637,22 @@ test.describe("The Internet Homepage tests", () => {
   });
 
   test("Sortable Data Tables", async ({ page }) => {
-    await page.getByRole("link", { name: "Sortable Data Tables" }).click();
+    await homepage.locators.sortableDataTablesLink.click();
 
     // Table 1
-    const T1 = page.locator("#table1");
-    const T1_First_name = page.locator("#table1").getByText("First Name");
-    const T1_last_name = page.locator("#table1").getByText("Last Name");
-    const T1_email = page.locator("#table1").getByText("Email");
-    const T1_due = page.locator("#table1").getByText("Due");
-    const T1_website = page.locator("#table1").getByText("Web Site");
-
-    // Table 2
-
-    const T2 = page.locator("#table2");
-    const T2_First_name = page.locator("#table2").getByText("First Name");
-    const T2_last_name = page.locator("#table2").getByText("Last Name");
-    const T2_email = page.locator("#table2").getByText("Email");
-    const T2_due = page.locator("#table2").getByText("Due");
-    const T2_website = page.locator("#table2").getByText("Web Site");
-
     const sort_headers = [
-      T1,
-      T2,
-      T1_First_name,
-      T1_last_name,
-      T1_due,
-      T1_email,
-      T1_website,
-      T2_First_name,
-      T2_due,
-      T2_email,
-      T2_last_name,
-      T2_website,
+      homepage.locators.table1,
+      homepage.locators.table2,
+      homepage.locators.table1FirstName,
+      homepage.locators.table1LastName,
+      homepage.locators.table1Due,
+      homepage.locators.table1Email,
+      homepage.locators.table1Website,
+      homepage.locators.table2FirstName,
+      homepage.locators.table2Due,
+      homepage.locators.table2Email,
+      homepage.locators.table2LastName,
+      homepage.locators.table2Website,
     ];
 
     // Validating the visibility of the elements
@@ -798,8 +665,7 @@ test.describe("The Internet Homepage tests", () => {
     // sorting via last name and validating the last names sorted
     const last_names_array_before = [];
     for (let index = 0; index < 4; index++) {
-      const element = await page
-        .locator("#table1 tbody tr td")
+      const element = await homepage.locators.table1Columns1
         .nth(count1)
         .textContent();
       last_names_array_before.push(element);
@@ -807,14 +673,14 @@ test.describe("The Internet Homepage tests", () => {
     }
     console.log(last_names_array_before);
 
-    await T1_last_name.click();
+    await homepage.locators.table1LastName.click();
     let count2 = 0;
     const last_names_array_after = [];
     for (let index = 0; index < 4; index++) {
-      const element = await page
-        .locator("#table1 tbody tr td")
+      const element = await homepage.locators.table1Columns1
         .nth(count2)
         .textContent();
+      console.log(element);
       last_names_array_after.push(element);
       count2 += 6;
     }
@@ -825,31 +691,26 @@ test.describe("The Internet Homepage tests", () => {
 
     // another approach:
     // validating firstname sort:
-    const firstname_array_before = await page
-      .locator("#table1 tbody tr td:nth-child(2)")
-      .allTextContents();
+    const firstname_array_before =
+      await homepage.locators.table1Columns2.allTextContents();
     console.log(firstname_array_before);
 
-    await T1_First_name.click();
+    await homepage.locators.table1FirstName.click();
 
-    const firstname_array_after = await page
-      .locator("#table1 tbody tr td:nth-child(2)")
-      .allTextContents();
+    const firstname_array_after =
+      await homepage.locators.table1Columns2.allTextContents();
     console.log(firstname_array_after);
 
     await expect(firstname_array_before.sort()).toEqual(firstname_array_after);
 
     // Validating Email sort
-    const emailBefore = await page
-      .locator("#table1 tbody tr td:nth-child(3)")
-      .allTextContents();
+    const emailBefore =
+      await homepage.locators.table1Columns3.allTextContents();
     console.log("Emails (before):", emailBefore);
 
-    await T1_email.click();
+    await homepage.locators.table1Email.click();
 
-    const emailAfter = await page
-      .locator("#table1 tbody tr td:nth-child(3)")
-      .allTextContents();
+    const emailAfter = await homepage.locators.table1Columns3.allTextContents();
     console.log("Emails (after):", emailAfter);
 
     expect(emailAfter).toEqual(
@@ -857,16 +718,12 @@ test.describe("The Internet Homepage tests", () => {
     );
 
     // Validating Due Amount sort (numeric)
-    const dueBefore = await page
-      .locator("#table1 tbody tr td:nth-child(4)")
-      .allTextContents();
+    const dueBefore = await homepage.locators.table1Columns4.allTextContents();
     console.log("Due (before):", dueBefore);
 
-    await T1_due.click();
+    await homepage.locators.table1Due.click();
 
-    const dueAfter = await page
-      .locator("#table1 tbody tr td:nth-child(4)")
-      .allTextContents();
+    const dueAfter = await homepage.locators.table1Columns4.allTextContents();
     console.log("Due (after):", dueAfter);
 
     // Convert "$51.00" → 51.00 for correct numeric comparison
@@ -878,16 +735,14 @@ test.describe("The Internet Homepage tests", () => {
     );
 
     // Validating Website Name sort
-    const websiteBefore = await page
-      .locator("#table1 tbody tr td:nth-child(5)")
-      .allTextContents();
+    const websiteBefore =
+      await homepage.locators.table1Columns5.allTextContents();
     console.log("Websites (before):", websiteBefore);
 
-    await T1_website.click();
+    await homepage.locators.table1Website.click();
 
-    const websiteAfter = await page
-      .locator("#table1 tbody tr td:nth-child(5)")
-      .allTextContents();
+    const websiteAfter =
+      await homepage.locators.table1Columns5.allTextContents();
     console.log("Websites (after):", websiteAfter);
 
     expect(websiteAfter).toEqual(
@@ -928,29 +783,27 @@ test.skip("Basic Auth", async ({ browser }) => {
   await page.goto("https://the-internet.herokuapp.com/");
   await page.waitForLoadState("networkidle");
   await expect(page).toHaveTitle("The Internet");
-  const basicAuthLink = page.getByText("Basic Auth (user and pass:");
-  await expect(basicAuthLink).toBeVisible();
-  await basicAuthLink.click();
+  homepage = new Homepage(page); // Initialize homepage with the new page
+  await expect(homepage.locators.basicAuthLink).toBeVisible();
+  await homepage.locators.basicAuthLink.click();
   await page.waitForLoadState("networkidle");
-  await expect(page.getByText("Congratulations! You must")).toHaveText(
+  await expect(homepage.locators.basicAuthSuccessMessage).toHaveText(
     "Congratulations! You must have the proper credentials."
   );
 });
 
 test("Multiple Windows", async ({ context }) => {
-  const page1 = await context.newPage();
-  await page1.goto("https://the-internet.herokuapp.com/");
-  await page1.getByRole("link", { name: "Multiple Windows" }).click();
+  const page = await context.newPage();
+  await page.goto("https://the-internet.herokuapp.com/");
+  homepage = new Homepage(page); // Initialize homepage with the new page
+  await homepage.locators.multipleWindowsLink.click();
   const pagePromise = context.waitForEvent("page");
-  await page1.getByRole("link", { name: "Click Here" }).click();
+  await homepage.locators.clickHereNewWindowLink.click();
   const page2 = await pagePromise;
-  const newWindowValidation = page2.getByRole("heading", {
-    name: "New Window",
-  });
-  await expect(newWindowValidation).toBeVisible();
+  await expect(homepage.locators.newWindowHeading).toBeVisible();
 });
 
-test.fail("Secure File Download", async ({ browser }) => {
+test.skip("Secure File Download", async ({ browser }) => {
   test.setTimeout(180000);
 
   const context = await browser.newContext({
@@ -963,24 +816,28 @@ test.fail("Secure File Download", async ({ browser }) => {
   await page.goto("https://the-internet.herokuapp.com/");
   await page.waitForLoadState("networkidle");
   await expect(page).toHaveTitle("The Internet");
-  await page.getByRole("link", { name: "Secure File Download" }).click();
+  homepage = new Homepage(page);
+  await homepage.locators.secureDownloadLink.click();
   await page.waitForLoadState("networkidle");
-  const download_links = page.locator(".example a");
-  const download_links_count = await download_links.count();
-  console.log(`Download Links Count :${download_links_count}`);
 
-  const download_links_array = await download_links.elementHandles();
-  console.log(`Array Length: ${download_links_array.length}`);
+  const secureDownloadLinksCount =
+    await homepage.locators.secureDownloadFiles.count();
+  console.log(`Download Links Count :${secureDownloadLinksCount}`);
 
-  for (const a of download_links_array) {
+  const secureDownloadLinksArray =
+    await homepage.locators.secureDownloadFiles.elementHandles();
+  console.log(`Array Length: ${secureDownloadLinksArray.length}`);
+
+  for (const a of secureDownloadLinksArray) {
     try {
-      const downloadPromise = page.waitForEvent("download", {
+      const secureFileDownloadPromise = page.waitForEvent("download", {
         timeout: 25000,
       });
       await a.click();
-      const download = await downloadPromise;
-      await download.saveAs(
-        "tests/functional/test_downloads/" + download.suggestedFilename()
+      const secureFileDownload = await secureFileDownloadPromise;
+      await secureFileDownload.saveAs(
+        "tests/functional/test_downloads/" +
+          secureFileDownload.suggestedFilename()
       );
     } catch (err) {
       console.warn(`no download triggered or bad request.`);

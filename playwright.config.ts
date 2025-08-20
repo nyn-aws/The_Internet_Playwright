@@ -4,7 +4,7 @@ export default defineConfig({
   testDir: "./tests",
   /* Run tests in files in parallel */
   timeout: 30 * 1000,
-  workers: 3,
+  workers: 6,
   fullyParallel: true,
   reporter: [
     ["html", { outputFile: "reports/results.html", open: "never" }],
