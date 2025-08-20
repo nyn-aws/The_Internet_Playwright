@@ -9,6 +9,7 @@ on:
 jobs:
   test:
     timeout-minutes: 60
+    runs-on: ubuntu-latest
     container: mcr.microsoft.com/playwright:v1.54.2-jammy
 
     steps:
