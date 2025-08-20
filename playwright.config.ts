@@ -12,7 +12,7 @@ export default defineConfig({
   ],
   use: {
     browserName: "chromium",
-    headless: false,
+    headless: true,
     screenshot: "on",
     baseURL: "https://the-internet.herokuapp.com/",
     trace: "retain-on-failure",
