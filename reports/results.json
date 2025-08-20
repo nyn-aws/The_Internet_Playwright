@@ -56,7 +56,7 @@
     "updateSnapshots": "missing",
     "updateSourceMethod": "3way",
     "version": "1.54.2",
-    "workers": 3,
+    "workers": 6,
     "webServer": null
   },
   "suites": [
@@ -70,7 +70,7 @@
         {
           "title": "The Internet Homepage tests",
           "file": "functional/ui/test_homepage.spec.ts",
-          "line": 3,
+          "line": 4,
           "column": 6,
           "specs": [
             {
@@ -86,14 +86,26 @@
                   "projectName": "",
                   "results": [
                     {
-                      "workerIndex": 7,
+                      "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5031,
+                      "duration": 16555,
                       "errors": [],
                       "stdout": [
                         {
                           "text": "[ \u001b[32m'Smith'\u001b[39m, \u001b[32m'Bach'\u001b[39m, \u001b[32m'Doe'\u001b[39m, \u001b[32m'Conway'\u001b[39m ]\n"
+                        },
+                        {
+                          "text": "Bach\n"
+                        },
+                        {
+                          "text": "Conway\n"
+                        },
+                        {
+                          "text": "Doe\n"
+                        },
+                        {
+                          "text": "Smith\n"
                         },
                         {
                           "text": "[ \u001b[32m'Bach'\u001b[39m, \u001b[32m'Conway'\u001b[39m, \u001b[32m'Doe'\u001b[39m, \u001b[32m'Smith'\u001b[39m ]\n"
@@ -125,7 +137,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-19T10:47:36.758Z",
+                      "startTime": "2025-08-20T04:05:00.073Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -141,7 +153,7 @@
               ],
               "id": "407f2a532f3e316c951e-fa8f5a05614c274c48a2",
               "file": "functional/ui/test_homepage.spec.ts",
-              "line": 756,
+              "line": 639,
               "column": 7
             }
           ]
@@ -151,8 +163,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-08-19T10:47:35.814Z",
-    "duration": 6248.921000000089,
+    "startTime": "2025-08-20T04:04:59.118Z",
+    "duration": 17605.004000000015,
     "expected": 1,
     "skipped": 0,
     "unexpected": 0,

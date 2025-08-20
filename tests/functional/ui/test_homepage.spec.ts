@@ -674,6 +674,7 @@ test.describe("The Internet Homepage tests", () => {
     console.log(last_names_array_before);
 
     await homepage.locators.table1LastName.click();
+    await page.waitForTimeout(1000);
     let count2 = 0;
     const last_names_array_after = [];
     for (let index = 0; index < 4; index++) {
@@ -696,6 +697,8 @@ test.describe("The Internet Homepage tests", () => {
     console.log(firstname_array_before);
 
     await homepage.locators.table1FirstName.click();
+    await page.waitForTimeout(1000);
+    await page.waitForLoadState("networkidle");
 
     const firstname_array_after =
       await homepage.locators.table1Columns2.allTextContents();
@@ -709,6 +712,8 @@ test.describe("The Internet Homepage tests", () => {
     console.log("Emails (before):", emailBefore);
 
     await homepage.locators.table1Email.click();
+    await page.waitForTimeout(1000);
+    await page.waitForLoadState("networkidle");
 
     const emailAfter = await homepage.locators.table1Columns3.allTextContents();
     console.log("Emails (after):", emailAfter);
@@ -722,6 +727,8 @@ test.describe("The Internet Homepage tests", () => {
     console.log("Due (before):", dueBefore);
 
     await homepage.locators.table1Due.click();
+    await page.waitForTimeout(1000);
+    await page.waitForLoadState("networkidle");
 
     const dueAfter = await homepage.locators.table1Columns4.allTextContents();
     console.log("Due (after):", dueAfter);
@@ -740,6 +747,8 @@ test.describe("The Internet Homepage tests", () => {
     console.log("Websites (before):", websiteBefore);
 
     await homepage.locators.table1Website.click();
+    await page.waitForTimeout(1000);
+    await page.waitForLoadState("networkidle");
 
     const websiteAfter =
       await homepage.locators.table1Columns5.allTextContents();
